@@ -1,5 +1,5 @@
 public with sharing class RentalService {
-    public static void createRental(Id equipmentId, Id contactId, Date startDate, Date endDate) {
+    public static Id createRental(Id equipmentId, Id contactId, Date startDate, Date endDate) {
 
         if (endDate < startDate || endDate < Date.today() || startDate < Date.today()) {
             System.debug('Incorrect date');
@@ -21,9 +21,10 @@ public with sharing class RentalService {
 
         //rental.Total_Amount__c = calculationRental(startDate, endDate);
         insert rental;
+        return rental.Id;
     }
 
-    private static String getEquipmentStatus(Date startdate) {
+    private static String getEquipmentStatus(Date startDate) {
         if (startDate == Date.today()) {
             return 'Active';
         } else {
