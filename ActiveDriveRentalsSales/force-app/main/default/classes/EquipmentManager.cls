@@ -1,10 +1,22 @@
 @RestResource(urlMapping = '/equipment/*')
 global with sharing class EquipmentManager {
     @HttpGet
-    global static List<Equipment__c> getEquipment() {
+    global static List<SObject> getEquipment() {
         RestRequest request = RestContext.request;
-        String equipmentStatus = request.requestURI.substring(request.requestURI.lastIndexOf('/') + 1);
-        List<Equipment__c> resultList = [SELECT Id, Name, Category__c, Daily_Rent_Price__c FROM Equipment__c WHERE Status__c = :equipmentStatus];
+        String equipmentParam = request.requestURI.substring(request.requestURI.lastIndexOf('/') + 1);
+
+        List<SObject> resultList = new List<SObject>();
+        //urlMapping = '/equipment/*' OR urlMapping = '/equipment/*/history'
+        if (equipmentParam.equals('history')) {
+            String equipmentId = request.requestURI.substringBetween('equipment/', '/history');
+            List<Rental__c> rentalsList = [SELECT Id FROM Rental__c WHERE Equipment__c = :equipmentId];
+            List<Sale__c> salesList = [SELECT Id FROM Sale__c WHERE Equipment__c = :equipmentId];
+            resultList.addAll(rentalsList);
+            resultList.addAll(salesList);
+        } else {
+            List<Equipment__c> EquipmentList = [SELECT Id, Name, Category__c, Daily_Rent_Price__c FROM Equipment__c WHERE Status__c = :equipmentParam];
+            resultList.addAll(EquipmentList);
+        }
         return resultList;
     }
 
@@ -43,6 +55,8 @@ global with sharing class EquipmentManager {
         Equipment__c thisEquipment = [SELECT Id FROM Equipment__c WHERE Id = :equipmentId];
         delete thisEquipment;
     }
+
+
 
     public class ApiException extends Exception {}
 }
